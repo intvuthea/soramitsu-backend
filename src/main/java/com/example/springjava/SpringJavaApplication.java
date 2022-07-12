@@ -25,8 +25,7 @@ public class SpringJavaApplication {
 	@Bean
 	CommandLineRunner run(UserService userService) {
 		return args -> {
-			userService.saveUser(new User(null, "Int Vuthea", "john", "123", new ArrayList<>()));
+			userService.saveUser(new User(null, "Int Vuthea", "john", "123"));
 		};
 	}
-
 }

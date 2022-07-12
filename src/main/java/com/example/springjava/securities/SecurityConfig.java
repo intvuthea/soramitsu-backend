@@ -36,22 +36,32 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-//        CustomAuthenticationFilter customAuthenticationFilter = new CustomAuthenticationFilter(authenticationManagerBean());
-//        customAuthenticationFilter.setFilterProcessesUrl("/api/auth/login");
 
         http.csrf().disable();
-
-
-        http.exceptionHandling().authenticationEntryPoint(accessTokenEntryPoint);
-
-//        http.exceptionHandling().authenticationEntryPoint(accessTokenEntryPoint);
         http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-        http.authorizeRequests().antMatchers("/api/auth/login").permitAll();
         http.authorizeRequests().anyRequest().authenticated();
 
+        /**
+         * Except authorize request endpoint
+         * */
+        http.authorizeRequests().antMatchers("/api/auth/login").permitAll();
 
+        /**
+         * Custom spring security login
+         * */
+//        CustomAuthenticationFilter customAuthenticationFilter = new CustomAuthenticationFilter(authenticationManagerBean());
+//        customAuthenticationFilter.setFilterProcessesUrl("/api/auth/login");
 //        http.addFilter(customAuthenticationFilter);
+
+        /**
+         * Set current authenticated user context
+         * */
         http.addFilterBefore(accessTokenFilter(), UsernamePasswordAuthenticationFilter.class);
+
+        /**
+         * Throw message when request unauthorized
+         * */
+        http.exceptionHandling().authenticationEntryPoint(accessTokenEntryPoint);
     }
 
     @Bean

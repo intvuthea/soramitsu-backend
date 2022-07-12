@@ -3,10 +3,8 @@ package com.example.springjava.Filters;
 import com.example.springjava.jwt.JwtHelper;
 import com.example.springjava.models.User;
 import com.example.springjava.services.UserService;
-import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.util.StringUtils;
@@ -22,7 +20,6 @@ import java.util.Optional;
 /**
  * Set current authenticated user context
  * */
-@Log4j2
 public class CustomAccessTokenFilter extends OncePerRequestFilter {
     @Autowired
     private JwtHelper jwtHelper;
@@ -32,14 +29,14 @@ public class CustomAccessTokenFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
-            Optional<String> token = parseToken(request);
-            if (token.isPresent()) {
-                String username = jwtHelper.getUsernameFromAccessToken(token.get());
-                User user = userService.getUser(username);
-                UsernamePasswordAuthenticationToken upat = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
-                upat.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(upat);
-            }
+        Optional<String> token = parseToken(request);
+        if (token.isPresent()) {
+            String username = jwtHelper.getUsernameFromAccessToken(token.get());
+            User user = userService.getUser(username);
+            UsernamePasswordAuthenticationToken upat = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
+            upat.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+            SecurityContextHolder.getContext().setAuthentication(upat);
+        }
 
         filterChain.doFilter(request, response);
     }

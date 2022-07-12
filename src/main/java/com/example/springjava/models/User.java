@@ -2,6 +2,7 @@ package com.example.springjava.models;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -9,7 +10,8 @@ import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.Collection;
 
-@Entity @Data @AllArgsConstructor
+@Entity @Data @NoArgsConstructor
+@AllArgsConstructor @Table(name = "users")
 public class User implements UserDetails {
     @Id @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
@@ -18,8 +20,8 @@ public class User implements UserDetails {
     private String username;
     private String password;
 
-    @ManyToMany(fetch = FetchType.EAGER)
-    private Collection<Role> roles = new ArrayList<>();
+//    @ManyToMany(fetch = FetchType.EAGER)
+//    private Collection<Role> roles = new ArrayList<>();
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

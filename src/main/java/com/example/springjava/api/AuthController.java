@@ -51,6 +51,7 @@ public class AuthController {
     public ResponseEntity me(@AuthenticationPrincipal User user) {
         Map<String, String> response = new HashMap<>();
         response.put("username", user.getUsername());
+        response.put("name", user.getName());
         response.put("id", user.getId().toString());
 
         return ResponseEntity.ok().body(response);
