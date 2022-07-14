@@ -1,4 +1,4 @@
-package com.example.springjava.Filters;
+package com.example.springjava.filters;
 
 import com.example.springjava.jwt.JwtHelper;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -51,11 +51,6 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult) throws IOException, ServletException {
         User user = (User) authResult.getPrincipal();
-//        Algorithm algorithm = Algorithm.HMAC256("secret".getBytes());
-//        String token = JWT.create()
-//                .withSubject(user.getUsername())
-//                .withExpiresAt(new Date(System.currentTimeMillis() + 60 * 60 * 1000))
-//                .sign(algorithm);
 
         String token = this.jwtHelper.generateAccessToken(user.getUsername());
 

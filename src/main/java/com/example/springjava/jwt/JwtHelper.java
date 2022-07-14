@@ -29,6 +29,14 @@ public class JwtHelper {
         this.verifier  = JWT.require(this.algorithm).build();
     }
 
+    public int getTokenDuration() {
+        return this.tokenDuration;
+    }
+
+    public String getExpireDate() {
+        return this.tokenExpiresAt.toString();
+    }
+
     public String generateAccessToken(String subject) {
 
         String access_token = JWT.create()

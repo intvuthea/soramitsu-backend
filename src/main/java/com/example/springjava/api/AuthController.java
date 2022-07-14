@@ -1,5 +1,7 @@
 package com.example.springjava.api;
 
+import com.example.springjava.dtos.LoginRequest;
+import com.example.springjava.dtos.UserResponse;
 import com.example.springjava.jwt.JwtHelper;
 import com.example.springjava.models.User;
 import lombok.extern.log4j.Log4j2;
@@ -9,10 +11,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
@@ -28,11 +27,11 @@ public class AuthController {
     private AuthenticationManager authenticationManager;
 
     @PostMapping("/login")
-    public ResponseEntity login(HttpServletRequest request) {
-        try {
-            String username = request.getParameter("username");
-            String password = request.getParameter("password");
+    public ResponseEntity login(@RequestBody LoginRequest form) {
+        String username = form.getUsername();
+        String password = form.getPassword();
 
+        try {
             UsernamePasswordAuthenticationToken upat = new UsernamePasswordAuthenticationToken(username, password);
             Authentication authentication = this.authenticationManager.authenticate(upat);
 
@@ -40,19 +39,19 @@ public class AuthController {
             String token = jwtHelper.generateAccessToken(user.getUsername());
             Map<String, String> response = new HashMap<>();
             response.put("token", token);
+            response.put("duration", Integer.toString(this.jwtHelper.getTokenDuration()));
 
             return ResponseEntity.ok().body(response);
         } catch (Exception e) {
-            return ResponseEntity.ok().body(e.getMessage());
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
     @GetMapping("/me")
-    public ResponseEntity me(@AuthenticationPrincipal User user) {
-        Map<String, String> response = new HashMap<>();
-        response.put("username", user.getUsername());
-        response.put("name", user.getName());
-        response.put("id", user.getId().toString());
+    public ResponseEntity me(@AuthenticationPrincipal User user, HttpServletRequest request) {
+        UserResponse userResponse = new UserResponse(user.getUsername(), request.getRemoteAddr());
+        Map<String, UserResponse> response = new HashMap<>();
+        response.put("user", userResponse);
 
         return ResponseEntity.ok().body(response);
     }

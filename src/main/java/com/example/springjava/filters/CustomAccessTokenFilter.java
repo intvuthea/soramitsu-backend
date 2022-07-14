@@ -1,8 +1,9 @@
-package com.example.springjava.Filters;
+package com.example.springjava.filters;
 
 import com.example.springjava.jwt.JwtHelper;
 import com.example.springjava.models.User;
 import com.example.springjava.services.UserService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -15,6 +16,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -28,14 +31,26 @@ public class CustomAccessTokenFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        if (!request.getServletPath().equals("/api/auth/login")) {
+            Optional<String> token = parseToken(request);
+            if (token.isPresent()) {
+                try {
+                    String username = jwtHelper.getUsernameFromAccessToken(token.get());
+                    User user = userService.getUser(username);
+                    UsernamePasswordAuthenticationToken upat = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
+                    upat.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(upat);
+                } catch (Exception e) {
+                    System.out.println("..................doFilterInternal.......");
+                    response.setHeader("error", e.getMessage());
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    response.setContentType("application/json");
 
-        Optional<String> token = parseToken(request);
-        if (token.isPresent()) {
-            String username = jwtHelper.getUsernameFromAccessToken(token.get());
-            User user = userService.getUser(username);
-            UsernamePasswordAuthenticationToken upat = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
-            upat.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-            SecurityContextHolder.getContext().setAuthentication(upat);
+                    Map<String, String> error = new HashMap<>();
+                    error.put("message", e.getMessage());
+                    new ObjectMapper().writeValue(response.getOutputStream(), error);
+                }
+            }
         }
 
         filterChain.doFilter(request, response);
