@@ -1,7 +1,6 @@
 package com.example.springjava.securities;
 
 import com.example.springjava.filters.AccessTokenEntryPoint;
-import com.example.springjava.filters.CorsFilter;
 import com.example.springjava.filters.CustomAccessTokenFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,14 +10,12 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.session.SessionManagementFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -39,18 +36,17 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         auth.userDetailsService(this.userDetailsService).passwordEncoder(bCryptPasswordEncoder);
     }
 
-    @Override
-    public void configure(WebSecurity web) throws Exception {
-        web.ignoring().antMatchers("/login/**", "/signup/**");
-    }
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
+        http.cors();
+        http.csrf().disable();
+        http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
         /**
          * Cors policy
          * */
-        http.addFilterBefore(corsFilter(), SessionManagementFilter.class);
+//        http.addFilterBefore(corsFilter(), SessionManagementFilter.class);
 
         /**
          * Set current authenticated user context
@@ -62,15 +58,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
          * */
         http.exceptionHandling().authenticationEntryPoint(accessTokenEntryPoint);
 
-        http.csrf().disable();
-//        http.cors().disable();
-        http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-
-
-        http.authorizeRequests().antMatchers("/api/auth/login").permitAll();
         /**
-         * Any request require authorize
+         * Request require authorize
          * */
+        http.authorizeRequests().antMatchers("/api/auth/login").permitAll();
         http.authorizeRequests().anyRequest().authenticated();
 
         /**
@@ -79,7 +70,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 //        CustomAuthenticationFilter customAuthenticationFilter = new CustomAuthenticationFilter(authenticationManagerBean());
 //        customAuthenticationFilter.setFilterProcessesUrl("/api/auth/login");
 //        http.addFilter(customAuthenticationFilter);
-
 
         /**
          * Throw message when request unauthorized
@@ -105,10 +95,4 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         source.registerCorsConfiguration("/**", new CorsConfiguration().applyPermitDefaultValues());
         return source;
     }
-
-    @Bean()
-    CorsFilter corsFilter() {
-        return new CorsFilter();
-    }
-
 }
